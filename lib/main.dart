@@ -4,12 +4,12 @@ import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sig
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/people/v1.dart';
+import 'package:googleapis/calendar/v3.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(
-  // Optional clientId
-  // clientId: '[YOUR_OAUTH_2_CLIENT_ID]',
-  scopes: <String>[PeopleServiceApi.contactsReadonlyScope],
+  // clientId is provided in google-services.json
+  scopes: <String>[CalendarApi.calendarScope],
 );
 
 void main() async {
@@ -125,6 +125,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _handleSignIn() async {
     try {
+       print('Signing in...'); // ignore: avoid_print
+
       await _googleSignIn.signIn();
        print('Signed in successfully'); // ignore: avoid_print
     } catch (error) {

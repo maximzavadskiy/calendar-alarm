@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "158059414952-b5n420qpnb7lpnuhkeqkv49u3e16n2d3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.calendar_alarm",
+            "certificate_hash": "1c65a5a85ffce14bae9b76e33c7bb8ab43bfe77e"
+          }
+        },
+        {
           "client_id": "158059414952-4u0pvngop7lci4uko7knrv4mgqhq3lcs.apps.googleusercontent.com",
           "client_type": 3
         }
