@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>158059414952-js86c7jn6eb82oqur11i585000s9hfca.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.158059414952-js86c7jn6eb82oqur11i585000s9hfca</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAFZ-9tuMamHMf-oKgEZj4a_3i8iMVqSek</string>
+	<key>GCM_SENDER_ID</key>
+	<string>158059414952</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.calendarAlarm</string>
+	<key>PROJECT_ID</key>
+	<string>calendaralarmapp</string>
+	<key>STORAGE_BUCKET</key>
+	<string>calendaralarmapp.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:158059414952:ios:e1df51ce7098d0477c499d</string>
+</dict>
+</plist>

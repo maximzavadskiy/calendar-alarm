@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "158059414952",
+    "project_id": "calendaralarmapp",
+    "storage_bucket": "calendaralarmapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:158059414952:android:b48a9cb885226dac7c499d",
+        "android_client_info": {
+          "package_name": "com.example.calendar_alarm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "158059414952-4u0pvngop7lci4uko7knrv4mgqhq3lcs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa6h9WHpPmSFVRlwfezcNW6Dqs5ckiYUc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "158059414952-4u0pvngop7lci4uko7knrv4mgqhq3lcs.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "158059414952-js86c7jn6eb82oqur11i585000s9hfca.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.calendarAlarm"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
