@@ -28,24 +28,24 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        // primarySwatch: Colors.amber,
-      ),
-      home: const MyHomePage(title: 'Flutter Max Demo Home Page'),
+          // This is the theme of your application.
+          //
+          // Try running your application with "flutter run". You'll see the
+          // application has a blue toolbar. Then, without quitting the app, try
+          // changing the primarySwatch below to Colors.green and then invoke
+          // "hot reload" (press "r" in the console where you ran "flutter run",
+          // or simply save your changes to "hot reload" in a Flutter IDE).
+          // Notice that the counter didn't reset back to zero; the application
+          // is not restarted.
+          // primarySwatch: Colors.amber,
+          ),
+      home: const LoginPage(title: 'Flutter Max Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -59,11 +59,11 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-    GoogleSignInAccount? _currentUser;
+class _LoginPageState extends State<LoginPage> {
+  GoogleSignInAccount? _currentUser;
   String _contactText = '';
 
   @override
@@ -125,12 +125,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _handleSignIn() async {
     try {
-       print('Signing in...'); // ignore: avoid_print
+      print('Signing in...'); // ignore: avoid_print
 
       await _googleSignIn.signIn();
-       print('Signed in successfully'); // ignore: avoid_print
+      print('Signed in successfully'); // ignore: avoid_print
     } catch (error) {
-      print('Error occured in _handleSignIn');  // ignore: avoid_print
+      print('Error occured in _handleSignIn'); // ignore: avoid_print
       print(error); // ignore: avoid_print
     }
   }
@@ -163,16 +163,52 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       );
     } else {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          const Text('You are not currently signed in.'),
-          ElevatedButton(
-            onPressed: _handleSignIn,
-            child: const Text('SIGN IN'),
-          ),
-        ],
-      );
+      return SafeArea(
+          child: Padding(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                bottom: 20.0,
+              ),
+              child: Column(mainAxisSize: MainAxisSize.max, children: [
+                Row(),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        flex: 1,
+                        child: Image.asset(
+                          'assets/firebase_logo.png',
+                          height: 160,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Calendar Alarm',
+                        style: TextStyle(
+                          // color: CustomColors.firebaseYellow,
+                          fontSize: 40,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton.icon(
+                  style: const ButtonStyle(
+                    padding: MaterialStatePropertyAll<EdgeInsets>(EdgeInsets.all(20)),
+                  ),
+                  icon: Image.asset(
+                          'assets/google_logo.png',
+                          height: 30,
+                        ),
+                  onPressed: _handleSignIn,
+                  label: const Text('SIGN IN', style: const TextStyle(
+                    fontSize: 20,
+                  )),
+                )
+              ])));
     }
   }
 
