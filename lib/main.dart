@@ -23,13 +23,13 @@ Future<bool?> initNotificationPlugin() async {
 // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('app_icon');
-  final DarwinInitializationSettings initializationSettingsDarwin =
+  const DarwinInitializationSettings initializationSettingsDarwin =
       DarwinInitializationSettings(
           // onDidReceiveLocalNotification: (int resp){}
           );
-  final LinuxInitializationSettings initializationSettingsLinux =
+  const LinuxInitializationSettings initializationSettingsLinux =
       LinuxInitializationSettings(defaultActionName: 'Open notification');
-  final InitializationSettings initializationSettings = InitializationSettings(
+  const InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
       macOS: initializationSettingsDarwin,
@@ -45,8 +45,12 @@ sendNotification() async {
           importance: Importance.max,
           priority: Priority.high,
           ticker: 'ticker',
+          // Make notification notisable with fullscreen intent and gentle long alarm sound
+          ongoing: true,
           playSound: true,
-          sound: RawResourceAndroidNotificationSound('alarm'));
+          sound: RawResourceAndroidNotificationSound('alarm'),
+          fullScreenIntent: true,
+          );
   const NotificationDetails notificationDetails =
       NotificationDetails(android: androidNotificationDetails);
   await flutterLocalNotificationsPlugin.show(
@@ -79,15 +83,15 @@ void registerNextCalendarCheckTask() {
   final taskId = "check-starting-events-$randomId";
   // TODO only for debug, 5 sec refresh will drain the battery, use firebase / 15min interval starting at :00
   Workmanager().registerOneOffTask(taskId, taskId,
-      initialDelay: const Duration(seconds: 10));
+      initialDelay: const Duration(seconds: 5));
 }
 
 void main() async {
   runApp(const MyApp());
   Workmanager().initialize(
       callbackDispatcher, // The top level function, aka callbackDispatcher
-      isInDebugMode:
-          true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+      // isInDebugMode:
+          // true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
       );
   registerNextCalendarCheckTask();
   await initNotificationPlugin();
