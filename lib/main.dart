@@ -38,24 +38,50 @@ Future<bool?> initNotificationPlugin() async {
       onDidReceiveNotificationResponse: (resp) {});
 }
 
-sendNotification() async {
+sendNotification(String title, {String body = '', String payload = ''}) async {
   const AndroidNotificationDetails androidNotificationDetails =
-      AndroidNotificationDetails('calendarAlarms', 'Calendar alarms',
-          channelDescription: 'Makes alarm sound on the important calendar events',
-          importance: Importance.max,
-          priority: Priority.high,
-          ticker: 'ticker',
-          // Make notification notisable with fullscreen intent and gentle long alarm sound
-          ongoing: true,
-          playSound: true,
-          sound: RawResourceAndroidNotificationSound('alarm'),
-          fullScreenIntent: true,
-          );
+      AndroidNotificationDetails(
+    'calendarAlarms', 'Calendar alarms',
+    channelDescription: 'Makes alarm sound on the important calendar events',
+    importance: Importance.max,
+    priority: Priority.high,
+    ticker: 'ticker',
+    // Make notification notisable with fullscreen intent and gentle long alarm sound
+    ongoing: true,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound('alarm'),
+    fullScreenIntent: true,
+  );
   const NotificationDetails notificationDetails =
       NotificationDetails(android: androidNotificationDetails);
-  await flutterLocalNotificationsPlugin.show(
-      0, 'plain title', 'plain body', notificationDetails,
-      payload: 'item x');
+  await flutterLocalNotificationsPlugin
+      .show(0, title, body, notificationDetails, payload: payload);
+}
+
+Future<void> checkAndSendEventAlarm() async {
+  // TODO ensure that recurring events have different ids
+  await _googleSignIn.signInSilently();
+  List<Event> currentEvents = await getCurrentEvents();
+  // TODO: for location-based events, alarm 1h before
+  if (currentEvents.length != 0) {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> alarmedEvents = prefs.getStringList('alarmedEvents') ?? [];
+    print('alarmed events $alarmedEvents');
+
+    for (Event currentEvent in currentEvents) {
+      if (!alarmedEvents.contains(currentEvent.id)) {
+        if (currentEvent.id == null) {
+          throw ('Current event doesnt have id $currentEvent)');
+        } else {
+          alarmedEvents.add(currentEvent.id ?? 'noid');
+          prefs.setStringList('alarmedEvents', alarmedEvents);
+          await sendNotification('Event is starting now',
+              body:
+                  '"${currentEvent.summary}"\n${currentEvent.start?.dateTime.toString()}');
+        }
+      }
+    }
+  }
 }
 
 @pragma(
@@ -65,13 +91,11 @@ void callbackDispatcher() {
     try {
       print(
           "Native called background task: $task"); //simpleTask will be emitted here.
-
-      // _googleSignIn.signInSilently();
-      await sendNotification();
+      await checkAndSendEventAlarm();
       registerNextCalendarCheckTask();
-
     } catch (error) {
-      // print('')
+      sendNotification('Error accessing calendar events',
+          body: 'Calendar alarm is not working. Please sign in again.');
     }
 
     return Future.value(true);
@@ -79,22 +103,37 @@ void callbackDispatcher() {
 }
 
 void registerNextCalendarCheckTask() {
-  final randomId = Random().nextDouble().toString();
+  final randomId = Random().nextInt(1 << 32).toString();
   final taskId = "check-starting-events-$randomId";
   // TODO only for debug, 5 sec refresh will drain the battery, use firebase / 15min interval starting at :00
   Workmanager().registerOneOffTask(taskId, taskId,
-      initialDelay: const Duration(seconds: 5));
+      initialDelay: const Duration(seconds: 2));
 }
 
 void main() async {
   runApp(const MyApp());
   Workmanager().initialize(
-      callbackDispatcher, // The top level function, aka callbackDispatcher
-      // isInDebugMode:
-          // true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
-      );
+    callbackDispatcher, // The top level function, aka callbackDispatcher
+    // isInDebugMode:
+    // true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+  );
+  Workmanager().cancelAll();
   registerNextCalendarCheckTask();
   await initNotificationPlugin();
+}
+
+Future<List<Event>> getCurrentEvents() async {
+  // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
+  final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
+  assert(client != null, 'Authenticated client missing!');
+  // Prepare a People Service authenticated client.
+  final CalendarApi calendarApi = CalendarApi(client!);
+  // Retrieve a list of events happening now
+  final Events events = await calendarApi.events.list('primary',
+  singleEvents: true,
+      timeMin: DateTime.now(), timeMax: DateTime.now().add(const Duration(minutes: 1)), orderBy: 'updated');
+  print('current events ${events.items?.map((e) => e.summary)}');
+  return events.items ?? [];
 }
 
 class MyApp extends StatelessWidget {
@@ -163,22 +202,7 @@ class _LoginPageState extends State<LoginPage> {
       _contactText = 'Loading contact info...';
     });
 
-    // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-    final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
-    assert(client != null, 'Authenticated client missing!');
-
-    final prefs = await SharedPreferences.getInstance();
-
-    // Prepare a People Service authenticated client.
-    final CalendarApi calendarApi = CalendarApi(client!);
-    // Retrieve a list of the `names` of my `connections`
-    final Events events =
-        await calendarApi.events.list('primary', timeMin: DateTime.now());
-
-    final List<String>? eventNames =
-        events.items?.map((Event event) => event.summary ?? '').toList();
-
-    final String? firstEventName = eventNames?.first;
+    final String? firstEventName = ''; //(await getCurrentEvents()).first.summary;
     setState(() {
       if (firstEventName != null) {
         _contactText = 'Your last event is $firstEventName!';
