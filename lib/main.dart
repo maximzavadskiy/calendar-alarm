@@ -1,21 +1,47 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:workmanager/workmanager.dart';
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
+
+@pragma(
+    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) {
+    print(
+        "Native called background task: $task"); //simpleTask will be emitted here.
+    registerNextCalendarCheckTask();
+
+    return Future.value(true);
+  });
+}
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(
   // clientId is provided in google-services.json
   scopes: <String>[CalendarApi.calendarScope],
 );
 
+void registerNextCalendarCheckTask() {
+  final randomId = Random().nextDouble().toString();
+  final taskId = "check-starting-events-$randomId";
+  // TODO only for debug, 5 sec refresh will drain the battery, use firebase / 15min interval starting at :00
+  Workmanager().registerOneOffTask(taskId, taskId,
+      initialDelay: const Duration(seconds: 5));
+}
+
 void main() async {
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
   runApp(const MyApp());
+  Workmanager().initialize(
+      callbackDispatcher, // The top level function, aka callbackDispatcher
+      isInDebugMode:
+          true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+      );
+  registerNextCalendarCheckTask();
 }
 
 class MyApp extends StatelessWidget {
@@ -95,7 +121,8 @@ class _LoginPageState extends State<LoginPage> {
     final Events events =
         await calendarApi.events.list('primary', timeMin: DateTime.now());
 
-    final List<String>? eventNames = events.items?.map((Event event) => event.summary ?? '').toList();
+    final List<String>? eventNames =
+        events.items?.map((Event event) => event.summary ?? '').toList();
 
     final String? firstEventName = eventNames?.first;
     setState(() {
@@ -181,16 +208,18 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 ElevatedButton.icon(
                   style: const ButtonStyle(
-                    padding: MaterialStatePropertyAll<EdgeInsets>(EdgeInsets.all(20)),
+                    padding: MaterialStatePropertyAll<EdgeInsets>(
+                        EdgeInsets.all(20)),
                   ),
                   icon: Image.asset(
-                          'assets/google_logo.png',
-                          height: 30,
-                        ),
+                    'assets/google_logo.png',
+                    height: 30,
+                  ),
                   onPressed: _handleSignIn,
-                  label: const Text('SIGN IN', style: const TextStyle(
-                    fontSize: 20,
-                  )),
+                  label: const Text('SIGN IN',
+                      style: const TextStyle(
+                        fontSize: 20,
+                      )),
                 )
               ])));
     }
