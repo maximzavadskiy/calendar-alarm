@@ -40,11 +40,13 @@ Future<bool?> initNotificationPlugin() async {
 
 sendNotification() async {
   const AndroidNotificationDetails androidNotificationDetails =
-      AndroidNotificationDetails('your channel id', 'your channel name',
-          channelDescription: 'your channel description',
+      AndroidNotificationDetails('calendarAlarms', 'Calendar alarms',
+          channelDescription: 'Makes alarm sound on the important calendar events',
           importance: Importance.max,
           priority: Priority.high,
-          ticker: 'ticker');
+          ticker: 'ticker',
+          playSound: true,
+          sound: RawResourceAndroidNotificationSound('alarm'));
   const NotificationDetails notificationDetails =
       NotificationDetails(android: androidNotificationDetails);
   await flutterLocalNotificationsPlugin.show(
