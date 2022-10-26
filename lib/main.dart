@@ -4,34 +4,80 @@ import 'dart:math';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
-
-@pragma(
-    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) {
-    print(
-        "Native called background task: $task"); //simpleTask will be emitted here.
-    registerNextCalendarCheckTask();
-
-    return Future.value(true);
-  });
-}
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(
   // clientId is provided in google-services.json
   scopes: <String>[CalendarApi.calendarScope],
 );
 
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+Future<bool?> initNotificationPlugin() async {
+// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('app_icon');
+  final DarwinInitializationSettings initializationSettingsDarwin =
+      DarwinInitializationSettings(
+          // onDidReceiveLocalNotification: (int resp){}
+          );
+  final LinuxInitializationSettings initializationSettingsLinux =
+      LinuxInitializationSettings(defaultActionName: 'Open notification');
+  final InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsDarwin,
+      macOS: initializationSettingsDarwin,
+      linux: initializationSettingsLinux);
+  return flutterLocalNotificationsPlugin.initialize(initializationSettings,
+      onDidReceiveNotificationResponse: (resp) {});
+}
+
+sendNotification() async {
+  const AndroidNotificationDetails androidNotificationDetails =
+      AndroidNotificationDetails('your channel id', 'your channel name',
+          channelDescription: 'your channel description',
+          importance: Importance.max,
+          priority: Priority.high,
+          ticker: 'ticker');
+  const NotificationDetails notificationDetails =
+      NotificationDetails(android: androidNotificationDetails);
+  await flutterLocalNotificationsPlugin.show(
+      0, 'plain title', 'plain body', notificationDetails,
+      payload: 'item x');
+}
+
+@pragma(
+    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      print(
+          "Native called background task: $task"); //simpleTask will be emitted here.
+
+      // _googleSignIn.signInSilently();
+      await sendNotification();
+      registerNextCalendarCheckTask();
+
+    } catch (error) {
+      // print('')
+    }
+
+    return Future.value(true);
+  });
+}
+
 void registerNextCalendarCheckTask() {
   final randomId = Random().nextDouble().toString();
   final taskId = "check-starting-events-$randomId";
   // TODO only for debug, 5 sec refresh will drain the battery, use firebase / 15min interval starting at :00
   Workmanager().registerOneOffTask(taskId, taskId,
-      initialDelay: const Duration(seconds: 5));
+      initialDelay: const Duration(seconds: 10));
 }
 
 void main() async {
@@ -42,6 +88,7 @@ void main() async {
           true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
       );
   registerNextCalendarCheckTask();
+  await initNotificationPlugin();
 }
 
 class MyApp extends StatelessWidget {
@@ -112,8 +159,9 @@ class _LoginPageState extends State<LoginPage> {
 
     // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
     final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
-
     assert(client != null, 'Authenticated client missing!');
+
+    final prefs = await SharedPreferences.getInstance();
 
     // Prepare a People Service authenticated client.
     final CalendarApi calendarApi = CalendarApi(client!);
