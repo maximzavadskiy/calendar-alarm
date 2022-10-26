@@ -9,54 +9,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'notifications_api.dart';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn(
   // clientId is provided in google-services.json
   scopes: <String>[CalendarApi.calendarScope],
 );
-
-FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-
-Future<bool?> initNotificationPlugin() async {
-// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('app_icon');
-  const DarwinInitializationSettings initializationSettingsDarwin =
-      DarwinInitializationSettings(
-          // onDidReceiveLocalNotification: (int resp){}
-          );
-  const LinuxInitializationSettings initializationSettingsLinux =
-      LinuxInitializationSettings(defaultActionName: 'Open notification');
-  const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
-      macOS: initializationSettingsDarwin,
-      linux: initializationSettingsLinux);
-  return flutterLocalNotificationsPlugin.initialize(initializationSettings,
-      onDidReceiveNotificationResponse: (resp) {});
-}
-
-sendNotification(String title, {String body = '', String payload = ''}) async {
-  const AndroidNotificationDetails androidNotificationDetails =
-      AndroidNotificationDetails(
-    'calendarAlarms', 'Calendar alarms',
-    channelDescription: 'Makes alarm sound on the important calendar events',
-    importance: Importance.max,
-    priority: Priority.high,
-    ticker: 'ticker',
-    // Make notification notisable with fullscreen intent and gentle long alarm sound
-    ongoing: true,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound('alarm'),
-    fullScreenIntent: true,
-  );
-  const NotificationDetails notificationDetails =
-      NotificationDetails(android: androidNotificationDetails);
-  await flutterLocalNotificationsPlugin
-      .show(0, title, body, notificationDetails, payload: payload);
-}
 
 Future<void> checkAndSendEventAlarm() async {
   // TODO ensure that recurring events have different ids
@@ -75,7 +33,7 @@ Future<void> checkAndSendEventAlarm() async {
         } else {
           alarmedEvents.add(currentEvent.id ?? 'noid');
           prefs.setStringList('alarmedEvents', alarmedEvents);
-          await sendNotification('Event is starting now',
+          await NotificationsAPI().sendNotification('Event is starting now',
               body:
                   '"${currentEvent.summary}"\n${currentEvent.start?.dateTime.toString()}');
         }
@@ -94,7 +52,7 @@ void callbackDispatcher() {
       await checkAndSendEventAlarm();
       registerNextCalendarCheckTask();
     } catch (error) {
-      sendNotification('Error accessing calendar events',
+      NotificationsAPI().sendNotification('Error accessing calendar events',
           body: 'Calendar alarm is not working. Please sign in again.');
     }
 
@@ -107,7 +65,7 @@ void registerNextCalendarCheckTask() {
   final taskId = "check-starting-events-$randomId";
   // TODO only for debug, 5 sec refresh will drain the battery, use firebase / 15min interval starting at :00
   Workmanager().registerOneOffTask(taskId, taskId,
-      initialDelay: const Duration(seconds: 2));
+      initialDelay: const Duration(seconds: 15));
 }
 
 void main() async {
@@ -119,7 +77,6 @@ void main() async {
   );
   Workmanager().cancelAll();
   registerNextCalendarCheckTask();
-  await initNotificationPlugin();
 }
 
 Future<List<Event>> getCurrentEvents() async {
