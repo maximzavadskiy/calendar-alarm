@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/people/v1.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
 
@@ -74,13 +73,13 @@ class _LoginPageState extends State<LoginPage> {
         _currentUser = account;
       });
       if (_currentUser != null) {
-        _handleGetContact();
+        _handleGetEvent();
       }
     });
     _googleSignIn.signInSilently();
   }
 
-  Future<void> _handleGetContact() async {
+  Future<void> _handleGetEvent() async {
     setState(() {
       _contactText = 'Loading contact info...';
     });
@@ -91,36 +90,21 @@ class _LoginPageState extends State<LoginPage> {
     assert(client != null, 'Authenticated client missing!');
 
     // Prepare a People Service authenticated client.
-    final PeopleServiceApi peopleApi = PeopleServiceApi(client!);
+    final CalendarApi calendarApi = CalendarApi(client!);
     // Retrieve a list of the `names` of my `connections`
-    final ListConnectionsResponse response =
-        await peopleApi.people.connections.list(
-      'people/me',
-      personFields: 'names',
-    );
+    final Events events =
+        await calendarApi.events.list('primary', timeMin: DateTime.now());
 
-    final String? firstNamedContactName =
-        _pickFirstNamedContact(response.connections);
+    final List<String>? eventNames = events.items?.map((Event event) => event.summary ?? '').toList();
 
+    final String? firstEventName = eventNames?.first;
     setState(() {
-      if (firstNamedContactName != null) {
-        _contactText = 'I see you know $firstNamedContactName!';
+      if (firstEventName != null) {
+        _contactText = 'Your last event is $firstEventName!';
       } else {
-        _contactText = 'No contacts to display.';
+        _contactText = 'No events to display.';
       }
     });
-  }
-
-  String? _pickFirstNamedContact(List<Person>? connections) {
-    return connections
-        ?.firstWhere(
-          (Person person) => person.names != null,
-        )
-        .names
-        ?.firstWhere(
-          (Name name) => name.displayName != null,
-        )
-        .displayName;
   }
 
   Future<void> _handleSignIn() async {
@@ -157,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
             child: const Text('SIGN OUT'),
           ),
           ElevatedButton(
-            onPressed: _handleGetContact,
+            onPressed: _handleGetEvent,
             child: const Text('REFRESH'),
           ),
         ],
