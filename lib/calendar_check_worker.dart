@@ -90,14 +90,15 @@ Future<List<Event>> _getCurrentEvents() async {
   void _callbackDispatcher() {
   print('in callbackdispatcher');
   Workmanager().executeTask((task, inputData) async {
-    try {
       print(
           "Native called background task: $task"); //simpleTask will be emitted here.
+      try {
       await _checkAndSendEventAlarm();
       _registerNextCalendarCheckTask();
     } catch (error) {
+      // TODO: calendar check requires an app restart after relogin
       NotificationsAPI().sendNotification('Error accessing calendar events',
-          body: 'Calendar alarm is not working. Please sign in again.');
+          body: 'Calendar alarm is not working. Please sign in again and restart the app');
     }
 
     return Future.value(true);

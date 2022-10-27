@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           // primarySwatch: Colors.amber,
           ),
-      home: const LoginScreen(title: 'Flutter Max Demo Home Page'),
+      home: const LoginScreen(),
     );
   }
 }
