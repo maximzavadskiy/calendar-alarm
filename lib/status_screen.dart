@@ -28,24 +28,6 @@ class StatusScreen extends StatefulWidget {
 }
 
 class _StatusScreenState extends State<StatusScreen> {
-  String _contactText = '';
-
-  Future<void> _handleGetEvent() async {
-    setState(() {
-      _contactText = 'Loading contact info...';
-    });
-
-    final String? firstEventName =
-        ''; //(await getCurrentEvents()).first.summary;
-    setState(() {
-      if (firstEventName != null) {
-        _contactText = 'Your last event is $firstEventName!';
-      } else {
-        _contactText = 'No events to display.';
-      }
-    });
-  }
-
   Future<void> _handleSignOut() async {
      await _googleSignIn.signOut();
      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
@@ -58,22 +40,23 @@ class _StatusScreenState extends State<StatusScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
-        ListTile(
+        const SizedBox(height: 20),
+        Column(children: <Widget>[
+        const Text('All set!', style: TextStyle(fontSize: 40)),
+        const SizedBox(height: 20),
+        // TODO display current event, so that when clicking on notification user will see something
+        const Text('You can close the app.\nListening to the calendar of:', style: TextStyle(fontSize: 20)),
+         ListTile(
           leading: GoogleUserCircleAvatar(
             identity: user,
           ),
           title: Text(user.displayName ?? ''),
           subtitle: Text(user.email),
         ),
-        const Text('Signed in successfully.'),
-        Text(_contactText),
+        ]),
         ElevatedButton(
           onPressed: _handleSignOut,
           child: const Text('SIGN OUT'),
-        ),
-        ElevatedButton(
-          onPressed: _handleGetEvent,
-          child: const Text('REFRESH'),
         ),
       ],
     );
