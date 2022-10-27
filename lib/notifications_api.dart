@@ -14,8 +14,7 @@ class NotificationsAPI {
     return _notificationsAPI;
   }
 
-  _constructor() {
-    print('calling _constructor');
+  initialize() {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('app_icon');
     const DarwinInitializationSettings initializationSettingsDarwin =
