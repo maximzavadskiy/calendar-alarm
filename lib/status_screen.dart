@@ -1,14 +1,11 @@
 import 'dart:async';
+
+import 'google_signin.dart';
+
 import 'package:calendar_alarm/login_screen.dart';
 import 'package:flutter/material.dart';
-
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/calendar/v3.dart';
 
-final GoogleSignIn _googleSignIn = GoogleSignIn(
-  // clientId is provided in google-services.json
-  scopes: <String>[CalendarApi.calendarScope],
-);
 
 class StatusScreen extends StatefulWidget {
   const StatusScreen({super.key, required this.user});
@@ -29,7 +26,7 @@ class StatusScreen extends StatefulWidget {
 
 class _StatusScreenState extends State<StatusScreen> {
   Future<void> _handleSignOut() async {
-     await _googleSignIn.signOut();
+     await googleSignIn.signOut();
      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
           return LoginScreen();
         }));

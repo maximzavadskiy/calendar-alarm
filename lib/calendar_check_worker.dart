@@ -1,16 +1,14 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'google_signin.dart';
 import 'notifications_api.dart';
 
-import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:workmanager/workmanager.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
 
 initializeCalendarCheckWorker() {
@@ -24,11 +22,6 @@ initializeCalendarCheckWorker() {
   _registerNextCalendarCheckTask();
 }
 
-
-final GoogleSignIn _googleSignIn = GoogleSignIn(
-  // clientId is provided in google-services.json
-  scopes: <String>[CalendarApi.calendarScope],
-);
 
 void _registerNextCalendarCheckTask() {
   print('in registerNextCalendarCheckTask');
@@ -44,7 +37,7 @@ void _registerNextCalendarCheckTask() {
 
 Future<void> _checkAndSendEventAlarm() async {
   // TODO ensure that recurring events have different ids
-  await _googleSignIn.signInSilently();
+  await googleSignIn.signInSilently();
   List<Event> currentEvents = await _getCurrentEvents();
   // TODO: for location-based events, alarm 1h before
   if (currentEvents.length != 0) {
@@ -72,7 +65,7 @@ Future<void> _checkAndSendEventAlarm() async {
 
 Future<List<Event>> _getCurrentEvents() async {
   // Retrieve an [auth.AuthClient] from the current [GoogleSignIn] instance.
-  final auth.AuthClient? client = await _googleSignIn.authenticatedClient();
+  final auth.AuthClient? client = await googleSignIn.authenticatedClient();
   assert(client != null, 'Authenticated client missing!');
   // Prepare a People Service authenticated client.
   final CalendarApi calendarApi = CalendarApi(client!);
@@ -97,6 +90,7 @@ Future<List<Event>> _getCurrentEvents() async {
       await _checkAndSendEventAlarm();
     } catch (error) {
       // TODO: calendar check requires an app restart after relogin
+      print('ERROR in worker: $error');
       NotificationsAPI().sendNotification('Error accessing calendar events',
           body: 'Calendar alarm is not working. Please sign in again.');
     } finally {

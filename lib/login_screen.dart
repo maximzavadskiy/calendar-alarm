@@ -1,14 +1,11 @@
 import 'dart:async';
+
 import 'status_screen.dart';
+import 'google_signin.dart';
+
 import 'package:flutter/material.dart';
-
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/calendar/v3.dart';
 
-final GoogleSignIn _googleSignIn = GoogleSignIn(
-  // clientId is provided in google-services.json
-  scopes: <String>[CalendarApi.calendarScope],
-);
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,20 +20,20 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+    googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
       if (account != null) {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
           return StatusScreen(user: account);
         }));
       }
     });
-    _googleSignIn.signInSilently();
+    googleSignIn.signInSilently();
   }
 
   Future<void> _handleSignIn() async {
     try {
       print('Signing in...'); // ignore: avoid_print
-      GoogleSignInAccount? user = await _googleSignIn.signIn();
+      GoogleSignInAccount? user = await googleSignIn.signIn();
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
           return StatusScreen(user: user!);
         }));
