@@ -60,9 +60,10 @@ Future<void> _checkAndSendEventAlarm() async {
         } else {
           alarmedEvents.add(currentEvent.id ?? 'noid');
           prefs.setStringList('alarmedEvents', alarmedEvents);
+          // TODO: add direct link to Google Calendar  / show event info in the app
           await NotificationsAPI().sendNotification('Event is starting now',
               body:
-                  '"${currentEvent.summary}"\n${currentEvent.start?.dateTime.toString()}');
+                  '"${currentEvent.summary}"');
         }
       }
     }
@@ -94,12 +95,14 @@ Future<List<Event>> _getCurrentEvents() async {
           "Native called background task: $task"); //simpleTask will be emitted here.
       try {
       await _checkAndSendEventAlarm();
-      _registerNextCalendarCheckTask();
     } catch (error) {
       // TODO: calendar check requires an app restart after relogin
       NotificationsAPI().sendNotification('Error accessing calendar events',
-          body: 'Calendar alarm is not working. Please sign in again and restart the app');
-    }
+          body: 'Calendar alarm is not working. Please sign in again.');
+    } finally {
+      // Even if e.g. auth fails we will retry
+      _registerNextCalendarCheckTask();
+     }
 
     return Future.value(true);
   });
